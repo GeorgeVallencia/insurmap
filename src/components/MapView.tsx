@@ -1,28 +1,4 @@
 
-// 1. First, let's create the database schema (SQL)
-/*
--- Add this to your database:
-CREATE TABLE properties (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL, -- Reference to your users table
-    address TEXT NOT NULL,
-    latitude DECIMAL(10, 8) NOT NULL,
-    longitude DECIMAL(11, 8) NOT NULL,
-    property_type VARCHAR(50) DEFAULT 'residential',
-    status VARCHAR(20) DEFAULT 'lead',
-    estimated_value DECIMAL(12, 2),
-    risk_score DECIMAL(4, 2) DEFAULT 0,
-    risk_factors JSONB DEFAULT '{}',
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_properties_user_id ON properties(user_id);
-CREATE INDEX idx_properties_location ON properties(latitude, longitude);
-*/
-
-// 2. Enhanced MapView Component with all features
 'use client';
 import { useState, useCallback, useRef, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, MarkerClusterGroup } from "react-leaflet";
@@ -486,37 +462,3 @@ export default function EnhancedMapView() {
   );
 }
 
-// 'use client';
-
-// import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-// import L from "leaflet";
-
-// // Fix default marker icons (works only in browser)
-// if (typeof window !== "undefined") {
-//   delete (L.Icon.Default.prototype as any)._getIconUrl;
-//   L.Icon.Default.mergeOptions({
-//     iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-//     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-//     shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-//   });
-// }
-
-// export default function MapView() {
-//   return (
-//     <MapContainer
-//       center={[0.0236, 37.9062]} // Center on Kenya
-//       zoom={6}
-//       style={{ height: "100vh", width: "100%" }}
-//     >
-//       <TileLayer
-//         attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
-//         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-//       />
-
-//       {/* Example marker */}
-//       <Marker position={[-1.2921, 36.8219]}>
-//         <Popup>Nairobi</Popup>
-//       </Marker>
-//     </MapContainer>
-//   );
-// }
