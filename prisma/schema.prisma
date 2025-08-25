@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  UNDERWRITER
+  BROKER
+  INSURER
+  CLAIMS
+  REINSURER
+}
+
+model User {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Auth basics
+  email         String   @unique
+  username      String   @unique
+  passwordHash  String
+
+  // Profile
+  fullName      String
+  role          Role
+
+  // Optional org fields
+  organization  String?
+  industry      String?   // for org signups, optional
+
+  // Example: for underwriters etc.
+  specialtyLine String?   // UNDERWRITER only
+  yearsExp      Int?
+
+  // Claims example
+  avgClaimsPerMonth Int?
+
+  // Reinsurer example
+  reinsurerType  String? // "Treaty" | "Facultative"
+}
