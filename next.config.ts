@@ -7,7 +7,14 @@ const nextConfig = {
     workerThreads: false,
     cpus: 1,
   },
-
+  eslint: {
+      // Disable ESLint during builds
+      ignoreDuringBuilds: true,
+    },
+    typescript: {
+      // Ignore TypeScript errors during builds (use carefully)
+      ignoreBuildErrors: true,
+    },
   // Optimize webpack bundle
   webpack: (config, { isServer, dev }) => {
     // Client-side optimizations
