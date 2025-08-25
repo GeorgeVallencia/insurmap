@@ -59,6 +59,8 @@ const nextConfig = {
     unoptimized: false,
   },
 
+  
+
   // Reduce memory usage
   onDemandEntries: {
     // Period (in ms) where the server will keep pages in the buffer
@@ -71,35 +73,3 @@ const nextConfig = {
 module.exports = nextConfig;
 
 
-// import type { NextConfig } from "next";
-
-// const nextConfig: NextConfig = {
-//   /* config options here */
-// };
-
-// export default nextConfig;
-
-
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   experimental: {
-//     // Reduce memory usage
-//     workerThreads: false,
-//     cpus: 1,
-//   },
-//   // Optimize bundle
-//   webpack: (config, { isServer }) => {
-//     if (!isServer) {
-//       // Reduce client-side bundle size
-//       config.resolve.fallback = {
-//         ...config.resolve.fallback,
-//         fs: false,
-//         net: false,
-//         tls: false,
-//       };
-//     }
-//     return config;
-//   },
-// };
-
-// module.exports = nextConfig;
