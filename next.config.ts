@@ -59,7 +59,7 @@ const nextConfig = {
     unoptimized: false,
   },
 
-  
+    
 
   // Reduce memory usage
   onDemandEntries: {
