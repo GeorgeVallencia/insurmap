@@ -13,7 +13,7 @@ export default function Navbar() {
         
         {/* Logo */}
         <div className="flex cursor-pointer items-center space-x-2">
-          <span className="text-xl text-black font-bold tracking-tight">InsurMap</span>
+          <span className="text-xl text-black font-bold tracking-tight">Atomik</span>
         </div>
 
         {/* Desktop Links */}
