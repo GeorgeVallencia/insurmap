@@ -15,7 +15,12 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'satoshi': ['var(--font-satoshi)', 'sans-serif'],
+        'sans': ['var(--font-satoshi)', 'system-ui', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 };
