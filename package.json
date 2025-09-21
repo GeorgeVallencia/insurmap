@@ -36,6 +36,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-map-gl": "^8.0.4",
+    "react-mapbox-gl": "^5.1.1",
     "sentiment": "^5.0.2",
     "sharp": "^0.34.4",
     "supercluster": "^8.0.1",

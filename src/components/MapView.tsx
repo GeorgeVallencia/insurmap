@@ -1,10 +1,8 @@
 
 'use client';
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import mapboxgl from 'mapbox-gl';
-import Supercluster from "supercluster";
+import ReactMapboxGl, { Layer, Feature, Marker } from 'react-mapbox-gl';
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Types
 interface Property {
@@ -24,6 +22,13 @@ interface Property {
   notes?: string;
   created_at: string;
 }
+
+// Initialize Mapbox Map
+const Map = ReactMapboxGl({
+  accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here',
+  interactive: true,
+  scrollZoom: true,
+});
 
 // Risk-based marker colors
 const getRiskColor = (riskScore: number) => {
@@ -196,8 +201,6 @@ export default function EnhancedMapView() {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
 
   // Fetch properties from your API
   const fetchProperties = useCallback(async () => {
@@ -267,79 +270,14 @@ export default function EnhancedMapView() {
     }
   };
 
-  // Initialize map
-  useEffect(() => {
-    if (map.current) return; // Initialize map only once
-    
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here';
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current!,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [36.8219, -1.2921], // Nairobi
-      zoom: 10
-    });
-    
-    // Add click event listener
-    map.current.on('click', (e) => {
-      const { lng, lat } = e.lngLat;
-      setClickCoordinates({ lat, lng });
-      setEditingProperty(null);
-      setSelectedProperty(null);
-      setIsModalOpen(true);
-    });
-    
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
-    };
-  }, []);
-
-  // Add markers to map
-  useEffect(() => {
-    if (!map.current) return;
-    
-    // Clear existing markers
-    const markers = document.querySelectorAll('.mapbox-marker');
-    markers.forEach(marker => marker.remove());
-    
-    // Add new markers
-    properties.forEach(property => {
-      const color = getRiskColor(property.risk_score);
-      
-      // Create marker element
-      const markerElement = document.createElement('div');
-      markerElement.className = 'mapbox-marker';
-      markerElement.style.cssText = `
-        background-color: ${color};
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-      `;
-      markerElement.textContent = Math.round(property.risk_score).toString();
-      
-      // Add click event to marker
-      markerElement.addEventListener('click', (e) => {
-        e.stopPropagation();
-        setSelectedProperty(property);
-      });
-      
-      // Add marker to map
-      new mapboxgl.Marker(markerElement)
-        .setLngLat([property.longitude, property.latitude])
-        .addTo(map.current!);
-    });
-  }, [properties]);
+  // Handle map click
+  const handleMapClick = (map: any, evt: any) => {
+    const { lng, lat } = evt.lngLat;
+    setClickCoordinates({ lat, lng });
+    setEditingProperty(null);
+    setSelectedProperty(null);
+    setIsModalOpen(true);
+  };
 
   // Handle property edit
   const handleEditProperty = (property: Property) => {
@@ -391,11 +329,45 @@ export default function EnhancedMapView() {
       </div>
 
       {/* Map */}
-      <div 
-        ref={mapContainer} 
-        className="w-full" 
-        style={{ height: 'calc(100vh - 100px)' }}
-      />
+      <Map
+        style="mapbox://styles/mapbox/streets-v11"
+        containerStyle={{
+          height: 'calc(100vh - 100px)',
+          width: '100%'
+        }}
+        center={[36.8219, -1.2921]} // Nairobi
+        zoom={[10]}
+        onClick={handleMapClick}
+      >
+        {properties.map((property) => (
+          <Marker
+            key={property.id}
+            coordinates={[property.longitude, property.latitude]}
+            anchor="bottom"
+            onClick={() => setSelectedProperty(property)}
+          >
+            <div
+              style={{
+                backgroundColor: getRiskColor(property.risk_score),
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                border: '2px solid white',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '10px',
+                color: 'white',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              {Math.round(property.risk_score)}
+            </div>
+          </Marker>
+        ))}
+      </Map>
       
       {/* Property Popup */}
       {selectedProperty && (
