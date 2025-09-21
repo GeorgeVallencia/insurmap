@@ -1,5 +1,6 @@
+
 'use client';
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Map, { Marker } from 'react-map-gl/mapbox';
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -23,12 +24,15 @@ interface Property {
   created_at: string;
 }
 
+
 // Risk-based marker colors
 const getRiskColor = (riskScore: number) => {
   if (riskScore > 70) return '#EF4444'; // Red for high risk
   if (riskScore > 40) return '#F59E0B'; // Yellow for medium risk
   return '#10B981'; // Green for low risk
 };
+
+
 
 // Property Form Modal
 function PropertyModal({ 
@@ -450,3 +454,4 @@ export default function EnhancedMapView() {
     </div>
   );
 }
+

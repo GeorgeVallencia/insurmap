@@ -33,6 +33,24 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Interactive Map Section */}
+      <section className="py-12 px-6 bg-gray-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Interactive Property Risk Map
+            </h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Visualize and manage property risks with our interactive mapping platform.
+              Click on the map to add properties and see real-time risk assessments.
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <EnhancedMapView />
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto text-center">
