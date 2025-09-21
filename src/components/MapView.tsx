@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import Map, { Marker, Popup } from "react-map-gl";
+import Map, { Marker, Popup } from "react-map-gl/mapbox";
 import Supercluster from "supercluster";
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
 import 'mapbox-gl/dist/mapbox-gl.css';
