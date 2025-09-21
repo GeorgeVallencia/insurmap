@@ -36,18 +36,11 @@ export default function DashboardOverview() {
     setError(null);
     
     try {
-      // Check if token exists
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setError('No authentication token found. Please log in.');
-        setLoading(false);
-        return;
-      }
-
       console.log('Fetching dashboard data...');
       const response = await fetch('/api/dashboard/stats', {
+        method: 'GET',
+        credentials: 'include', // Include cookies in the request
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });

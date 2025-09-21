@@ -249,8 +249,10 @@ export default function EnhancedMapView() {
     try {
       setLoading(true);
       const response = await fetch('/api/properties', {
+        method: 'GET',
+        credentials: 'include', // Include cookies in the request
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Adjust based on your auth
+          'Content-Type': 'application/json',
         },
       });
       if (response.ok) {
@@ -272,9 +274,9 @@ export default function EnhancedMapView() {
 
       const response = await fetch(url, {
         method,
+        credentials: 'include', // Include cookies in the request
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(propertyData),
       });
@@ -298,8 +300,9 @@ export default function EnhancedMapView() {
     try {
       await fetch(`/api/risk/assess/${propertyId}`, {
         method: 'POST',
+        credentials: 'include', // Include cookies in the request
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
         },
       });
       // Refresh properties to show updated risk scores
