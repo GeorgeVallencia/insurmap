@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Shield, FileText, BarChart3, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
-//import EnhancedMapView from "@/components/MapView";
+import EnhancedMapView from "@/components/MapView";
 
 export default function HomePage() {
   return (
@@ -30,6 +30,24 @@ export default function HomePage() {
             Learn More
           </Link>
           {/* <EnhancedMapView /> */}
+        </div>
+      </section>
+
+      {/* Interactive Map Section */}
+      <section className="py-12 px-6 bg-gray-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">
+              Interactive Property Risk Map
+            </h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Visualize and manage property risks with our interactive mapping platform.
+              Click on the map to add properties and see real-time risk assessments.
+            </p>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <EnhancedMapView />
+          </div>
         </div>
       </section>
 

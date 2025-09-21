@@ -1,8 +1,9 @@
 
 'use client';
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import ReactMapboxGl, { Layer, Feature, Marker } from 'react-mapbox-gl';
+import Map, { Marker } from 'react-map-gl/mapbox';
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Types
 interface Property {
@@ -23,12 +24,6 @@ interface Property {
   created_at: string;
 }
 
-// Initialize Mapbox Map
-const Map = ReactMapboxGl({
-  accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here',
-  interactive: true,
-  scrollZoom: true,
-});
 
 // Risk-based marker colors
 const getRiskColor = (riskScore: number) => {
@@ -271,7 +266,7 @@ export default function EnhancedMapView() {
   };
 
   // Handle map click
-  const handleMapClick = (map: any, evt: any) => {
+  const handleMapClick = (evt: any) => {
     const { lng, lat } = evt.lngLat;
     setClickCoordinates({ lat, lng });
     setEditingProperty(null);
@@ -330,19 +325,24 @@ export default function EnhancedMapView() {
 
       {/* Map */}
       <Map
-        style="mapbox://styles/mapbox/streets-v11"
-        containerStyle={{
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here'}
+        initialViewState={{
+          longitude: 36.8219,
+          latitude: -1.2921,
+          zoom: 10
+        }}
+        style={{
           height: 'calc(100vh - 100px)',
           width: '100%'
         }}
-        center={[36.8219, -1.2921]} // Nairobi
-        zoom={[10]}
+        mapStyle="mapbox://styles/mapbox/streets-v11"
         onClick={handleMapClick}
       >
         {properties.map((property) => (
           <Marker
             key={property.id}
-            coordinates={[property.longitude, property.latitude]}
+            longitude={property.longitude}
+            latitude={property.latitude}
             anchor="bottom"
             onClick={() => setSelectedProperty(property)}
           >
