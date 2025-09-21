@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import Map, { Marker, Popup } from "react-map-gl/mapbox";
+import mapboxgl from 'mapbox-gl';
 import Supercluster from "supercluster";
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -32,48 +32,6 @@ const getRiskColor = (riskScore: number) => {
   return '#10B981'; // Green for low risk
 };
 
-// Custom marker component
-const RiskMarker = ({ 
-  longitude, 
-  latitude, 
-  riskScore, 
-  onClick 
-}: {
-  longitude: number;
-  latitude: number;
-  riskScore: number;
-  onClick: () => void;
-}) => {
-  const color = getRiskColor(riskScore);
-  
-  return (
-    <Marker
-      longitude={longitude}
-      latitude={latitude}
-      onClick={onClick}
-    >
-      <div
-        style={{
-          backgroundColor: color,
-          width: '20px',
-          height: '20px',
-          borderRadius: '50%',
-          border: '2px solid white',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '10px',
-          color: 'white',
-          fontWeight: 'bold',
-          cursor: 'pointer'
-        }}
-      >
-        {Math.round(riskScore)}
-      </div>
-    </Marker>
-  );
-};
 
 
 // Property Form Modal
@@ -238,11 +196,8 @@ export default function EnhancedMapView() {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [viewState, setViewState] = useState({
-    longitude: 36.8219,
-    latitude: -1.2921,
-    zoom: 10
-  });
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
 
   // Fetch properties from your API
   const fetchProperties = useCallback(async () => {
@@ -312,46 +267,79 @@ export default function EnhancedMapView() {
     }
   };
 
-  // Clustering logic
-  const supercluster = useMemo(() => {
-    const cluster = new Supercluster({
-      radius: 40,
-      maxZoom: 16
+  // Initialize map
+  useEffect(() => {
+    if (map.current) return; // Initialize map only once
+    
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here';
+    
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current!,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [36.8219, -1.2921], // Nairobi
+      zoom: 10
     });
     
-    const points = properties.map(property => ({
-      type: 'Feature' as const,
-      properties: {
-        cluster: false,
-        property
-      },
-      geometry: {
-        type: 'Point' as const,
-        coordinates: [property.longitude, property.latitude]
-      }
-    }));
+    // Add click event listener
+    map.current.on('click', (e) => {
+      const { lng, lat } = e.lngLat;
+      setClickCoordinates({ lat, lng });
+      setEditingProperty(null);
+      setSelectedProperty(null);
+      setIsModalOpen(true);
+    });
     
-    cluster.load(points);
-    return cluster;
-  }, [properties]);
-  
-  const clusters = useMemo(() => {
-    return supercluster.getClusters([
-      viewState.longitude - (180 / Math.pow(2, viewState.zoom)),
-      viewState.latitude - (85 / Math.pow(2, viewState.zoom)),
-      viewState.longitude + (180 / Math.pow(2, viewState.zoom)),
-      viewState.latitude + (85 / Math.pow(2, viewState.zoom))
-    ], Math.floor(viewState.zoom));
-  }, [supercluster, viewState]);
+    return () => {
+      if (map.current) {
+        map.current.remove();
+      }
+    };
+  }, []);
 
-  // Handle map clicks
-  const handleMapClick = (event: any) => {
-    const { lng, lat } = event.lngLat;
-    setClickCoordinates({ lat, lng });
-    setEditingProperty(null);
-    setSelectedProperty(null);
-    setIsModalOpen(true);
-  };
+  // Add markers to map
+  useEffect(() => {
+    if (!map.current) return;
+    
+    // Clear existing markers
+    const markers = document.querySelectorAll('.mapbox-marker');
+    markers.forEach(marker => marker.remove());
+    
+    // Add new markers
+    properties.forEach(property => {
+      const color = getRiskColor(property.risk_score);
+      
+      // Create marker element
+      const markerElement = document.createElement('div');
+      markerElement.className = 'mapbox-marker';
+      markerElement.style.cssText = `
+        background-color: ${color};
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      `;
+      markerElement.textContent = Math.round(property.risk_score).toString();
+      
+      // Add click event to marker
+      markerElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setSelectedProperty(property);
+      });
+      
+      // Add marker to map
+      new mapboxgl.Marker(markerElement)
+        .setLngLat([property.longitude, property.latitude])
+        .addTo(map.current!);
+    });
+  }, [properties]);
 
   // Handle property edit
   const handleEditProperty = (property: Property) => {
@@ -403,145 +391,85 @@ export default function EnhancedMapView() {
       </div>
 
       {/* Map */}
-      <Map
-        {...viewState}
-        onMove={(evt) => setViewState(evt.viewState)}
-        style={{ width: '100%', height: 'calc(100vh - 100px)' }}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here'}
-        onClick={handleMapClick}
-      >
-        {clusters.map((cluster) => {
-          const [longitude, latitude] = cluster.geometry.coordinates;
-          const { cluster: isCluster, point_count: pointCount } = cluster.properties;
+      <div 
+        ref={mapContainer} 
+        className="w-full" 
+        style={{ height: 'calc(100vh - 100px)' }}
+      />
+      
+      {/* Property Popup */}
+      {selectedProperty && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] bg-white p-4 rounded-lg shadow-lg border max-w-sm">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-bold text-sm">{selectedProperty.address}</h3>
+            <button 
+              onClick={() => setSelectedProperty(null)}
+              className="text-gray-400 hover:text-gray-600 text-lg font-bold leading-none"
+            >
+              ×
+            </button>
+          </div>
           
-          if (isCluster) {
-            return (
-              <Marker
-                key={`cluster-${cluster.id}`}
-                longitude={longitude}
-                latitude={latitude}
-                onClick={() => {
-                  const expansionZoom = Math.min(
-                    supercluster.getClusterExpansionZoom(cluster.id as number),
-                    20
-                  );
-                  setViewState({
-                    ...viewState,
-                    longitude,
-                    latitude,
-                    zoom: expansionZoom
-                  });
-                }}
-              >
-                <div
-                  style={{
-                    backgroundColor: '#4285f4',
-                    width: `${20 + (pointCount / properties.length) * 20}px`,
-                    height: `${20 + (pointCount / properties.length) * 20}px`,
-                    borderRadius: '50%',
-                    border: '2px solid white',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {pointCount}
-                </div>
-              </Marker>
-            );
-          }
-          
-          const property = cluster.properties.property;
-          return (
-            <RiskMarker
-              key={property.id}
-              longitude={longitude}
-              latitude={latitude}
-              riskScore={property.risk_score}
-              onClick={() => setSelectedProperty(property)}
-            />
-          );
-        })}
-        
-        {selectedProperty && (
-          <Popup
-            longitude={selectedProperty.longitude}
-            latitude={selectedProperty.latitude}
-            onClose={() => setSelectedProperty(null)}
-            closeButton={true}
-            closeOnClick={false}
-          >
-            <div className="w-64">
-              <h3 className="font-bold mb-2">{selectedProperty.address}</h3>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Risk Score:</span>
-                  <span className={`font-bold ${
-                    selectedProperty.risk_score > 70 ? 'text-red-600' :
-                    selectedProperty.risk_score > 40 ? 'text-yellow-600' : 'text-green-600'
-                  }`}>
-                    {selectedProperty.risk_score}/100
-                  </span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span>Type:</span>
-                  <span className="capitalize">{selectedProperty.property_type}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="capitalize">{selectedProperty.status}</span>
-                </div>
-                
-                {selectedProperty.estimated_value && (
-                  <div className="flex justify-between">
-                    <span>Value:</span>
-                    <span>${selectedProperty.estimated_value.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-
-              {selectedProperty.risk_factors && Object.keys(selectedProperty.risk_factors).length > 0 && (
-                <div className="mt-3 pt-2 border-t">
-                  <div className="text-sm font-medium mb-1">Risk Factors:</div>
-                  {selectedProperty.risk_factors.flood && (
-                    <div className="text-xs">Flood: {selectedProperty.risk_factors.flood}</div>
-                  )}
-                  {selectedProperty.risk_factors.fire && (
-                    <div className="text-xs">Fire: {selectedProperty.risk_factors.fire}</div>
-                  )}
-                  {selectedProperty.risk_factors.crime && (
-                    <div className="text-xs">Crime: {selectedProperty.risk_factors.crime}</div>
-                  )}
-                </div>
-              )}
-
-              <div className="mt-3 flex gap-2">
-                <button
-                  onClick={() => handleEditProperty(selectedProperty)}
-                  className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => assessRisk(selectedProperty.id)}
-                  className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
-                >
-                  Re-assess Risk
-                </button>
-              </div>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>Risk Score:</span>
+              <span className={`font-bold ${
+                selectedProperty.risk_score > 70 ? 'text-red-600' :
+                selectedProperty.risk_score > 40 ? 'text-yellow-600' : 'text-green-600'
+              }`}>
+                {selectedProperty.risk_score}/100
+              </span>
             </div>
-          </Popup>
-        )}
-      </Map>
+            
+            <div className="flex justify-between">
+              <span>Type:</span>
+              <span className="capitalize">{selectedProperty.property_type}</span>
+            </div>
+            
+            <div className="flex justify-between">
+              <span>Status:</span>
+              <span className="capitalize">{selectedProperty.status}</span>
+            </div>
+            
+            {selectedProperty.estimated_value && (
+              <div className="flex justify-between">
+                <span>Value:</span>
+                <span>${selectedProperty.estimated_value.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+
+          {selectedProperty.risk_factors && Object.keys(selectedProperty.risk_factors).length > 0 && (
+            <div className="mt-3 pt-2 border-t">
+              <div className="text-sm font-medium mb-1">Risk Factors:</div>
+              {selectedProperty.risk_factors.flood && (
+                <div className="text-xs">Flood: {selectedProperty.risk_factors.flood}</div>
+              )}
+              {selectedProperty.risk_factors.fire && (
+                <div className="text-xs">Fire: {selectedProperty.risk_factors.fire}</div>
+              )}
+              {selectedProperty.risk_factors.crime && (
+                <div className="text-xs">Crime: {selectedProperty.risk_factors.crime}</div>
+              )}
+            </div>
+          )}
+
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => handleEditProperty(selectedProperty)}
+              className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => assessRisk(selectedProperty.id)}
+              className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+            >
+              Re-assess Risk
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Property Modal */}
       <PropertyModal

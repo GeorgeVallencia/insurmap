@@ -1174,7 +1174,7 @@
   resolved "https://registry.npmjs.org/@unrs/resolver-binding-darwin-x64/-/resolver-binding-darwin-x64-1.11.1.tgz"
   integrity sha512-cFzP7rWKd3lZaCsDze07QX1SC24lO8mPty9vdP+YVa3MGdVgPmFc59317b2ioXtgCMKGiCLxJ4HQs62oz6GfRQ==
 
-"@vis.gl/react-mapbox@8.0.4":
+"@vis.gl/react-mapbox@^8.0.4", "@vis.gl/react-mapbox@8.0.4":
   version "8.0.4"
   resolved "https://registry.npmjs.org/@vis.gl/react-mapbox/-/react-mapbox-8.0.4.tgz"
   integrity sha512-NFk0vsWcNzSs0YCsVdt2100Zli9QWR+pje8DacpLkkGEAXFaJsFtI1oKD0Hatiate4/iAIW39SQHhgfhbeEPfQ==
