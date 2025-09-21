@@ -30,7 +30,7 @@ export default function SignupPage() {
         setError(data.error || "Signup failed");
         return;
       }
-      window.location.href = "/dashboard"; // success → redirect
+      window.location.href = "/"; // success → redirect
     } catch (e) {
       setError("Network error");
     } finally {
@@ -65,7 +65,7 @@ export default function SignupPage() {
                   <button
                     key={r}
                     onClick={() => setRole(r as Role)}
-                    className="p-4 border rounded-xl hover:text-white hover:bg-black"
+                    className="p-4 border cursor-pointer rounded-xl hover:text-white hover:bg-black"
                   >
                     {r === "BROKER" ? "Broker / Agent" : r.charAt(0) + r.slice(1).toLowerCase()}
                   </button>
