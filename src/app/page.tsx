@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Shield, FileText, BarChart3, Users } from "lucide-react";
 import Navbar from "@/components/Navbar";
-//import EnhancedMapView from "@/components/MapView";
+import EnhancedMapView from "@/components/MapView";
 
 export default function HomePage() {
   return (
@@ -29,7 +29,7 @@ export default function HomePage() {
           >
             Learn More
           </Link>
-          {/* <EnhancedMapView /> */}
+          <EnhancedMapView />
         </div>
       </section>
 
