@@ -1,22 +1,9 @@
 
 'use client';
-import { useState, useCallback, useRef, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, MarkerClusterGroup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "react-leaflet-cluster/lib/assets/MarkerCluster.css";
-import "react-leaflet-cluster/lib/assets/MarkerCluster.Default.css";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import Map, { Marker, Popup } from "react-map-gl";
+import Supercluster from "supercluster";
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
-
-// Fix default marker icons
-if (typeof window !== "undefined") {
-  delete (L.Icon.Default.prototype as any)._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  });
-}
 
 // Types
 interface Property {
@@ -37,46 +24,56 @@ interface Property {
   created_at: string;
 }
 
-// Risk-based marker icons
-const createRiskIcon = (riskScore: number) => {
-  let color = '#10B981'; // Green for low risk
-  if (riskScore > 70) color = '#EF4444'; // Red for high risk
-  else if (riskScore > 40) color = '#F59E0B'; // Yellow for medium risk
-
-  return L.divIcon({
-    html: `
-      <div style="
-        background-color: ${color};
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 10px;
-        color: white;
-        font-weight: bold;
-      ">
-        ${Math.round(riskScore)}
-      </div>
-    `,
-    className: '',
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
+// Risk-based marker colors
+const getRiskColor = (riskScore: number) => {
+  if (riskScore > 70) return '#EF4444'; // Red for high risk
+  if (riskScore > 40) return '#F59E0B'; // Yellow for medium risk
+  return '#10B981'; // Green for low risk
 };
 
-// Click handler component for adding properties
-function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click: (e) => {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
+// Custom marker component
+const RiskMarker = ({ 
+  longitude, 
+  latitude, 
+  riskScore, 
+  onClick 
+}: {
+  longitude: number;
+  latitude: number;
+  riskScore: number;
+  onClick: () => void;
+}) => {
+  const color = getRiskColor(riskScore);
+  
+  return (
+    <Marker
+      longitude={longitude}
+      latitude={latitude}
+      onClick={onClick}
+    >
+      <div
+        style={{
+          backgroundColor: color,
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          border: '2px solid white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '10px',
+          color: 'white',
+          fontWeight: 'bold',
+          cursor: 'pointer'
+        }}
+      >
+        {Math.round(riskScore)}
+      </div>
+    </Marker>
+  );
+};
+
 
 // Property Form Modal
 function PropertyModal({ 
@@ -239,6 +236,12 @@ export default function EnhancedMapView() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [clickCoordinates, setClickCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [viewState, setViewState] = useState({
+    longitude: 36.8219,
+    latitude: -1.2921,
+    zoom: 10
+  });
 
   // Fetch properties from your API
   const fetchProperties = useCallback(async () => {
@@ -305,10 +308,44 @@ export default function EnhancedMapView() {
     }
   };
 
+  // Clustering logic
+  const supercluster = useMemo(() => {
+    const cluster = new Supercluster({
+      radius: 40,
+      maxZoom: 16
+    });
+    
+    const points = properties.map(property => ({
+      type: 'Feature' as const,
+      properties: {
+        cluster: false,
+        property
+      },
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [property.longitude, property.latitude]
+      }
+    }));
+    
+    cluster.load(points);
+    return cluster;
+  }, [properties]);
+  
+  const clusters = useMemo(() => {
+    return supercluster.getClusters([
+      viewState.longitude - (180 / Math.pow(2, viewState.zoom)),
+      viewState.latitude - (85 / Math.pow(2, viewState.zoom)),
+      viewState.longitude + (180 / Math.pow(2, viewState.zoom)),
+      viewState.latitude + (85 / Math.pow(2, viewState.zoom))
+    ], Math.floor(viewState.zoom));
+  }, [supercluster, viewState]);
+
   // Handle map clicks
-  const handleMapClick = (lat: number, lng: number) => {
+  const handleMapClick = (event: any) => {
+    const { lng, lat } = event.lngLat;
     setClickCoordinates({ lat, lng });
     setEditingProperty(null);
+    setSelectedProperty(null);
     setIsModalOpen(true);
   };
 
@@ -362,93 +399,145 @@ export default function EnhancedMapView() {
       </div>
 
       {/* Map */}
-      <MapContainer
-        center={[-1.2921, 36.8219]} // Nairobi
-        zoom={10}
-        style={{ height: "calc(100vh - 100px)", width: "100%" }}
+      <Map
+        {...viewState}
+        onMove={(evt) => setViewState(evt.viewState)}
+        style={{ width: '100%', height: 'calc(100vh - 100px)' }}
+        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.your_mapbox_token_here'}
+        onClick={handleMapClick}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        <MapClickHandler onMapClick={handleMapClick} />
-        
-        <MarkerClusterGroup>
-          {properties.map((property) => (
-            <Marker
-              key={property.id}
-              position={[property.latitude, property.longitude]}
-              icon={createRiskIcon(property.risk_score)}
-            >
-              <Popup>
-                <div className="w-64">
-                  <h3 className="font-bold mb-2">{property.address}</h3>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Risk Score:</span>
-                      <span className={`font-bold ${
-                        property.risk_score > 70 ? 'text-red-600' :
-                        property.risk_score > 40 ? 'text-yellow-600' : 'text-green-600'
-                      }`}>
-                        {property.risk_score}/100
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span>Type:</span>
-                      <span className="capitalize">{property.property_type}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span>Status:</span>
-                      <span className="capitalize">{property.status}</span>
-                    </div>
-                    
-                    {property.estimated_value && (
-                      <div className="flex justify-between">
-                        <span>Value:</span>
-                        <span>${property.estimated_value.toLocaleString()}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {property.risk_factors && Object.keys(property.risk_factors).length > 0 && (
-                    <div className="mt-3 pt-2 border-t">
-                      <div className="text-sm font-medium mb-1">Risk Factors:</div>
-                      {property.risk_factors.flood && (
-                        <div className="text-xs">Flood: {property.risk_factors.flood}</div>
-                      )}
-                      {property.risk_factors.fire && (
-                        <div className="text-xs">Fire: {property.risk_factors.fire}</div>
-                      )}
-                      {property.risk_factors.crime && (
-                        <div className="text-xs">Crime: {property.risk_factors.crime}</div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={() => handleEditProperty(property)}
-                      className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => assessRisk(property.id)}
-                      className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
-                    >
-                      Re-assess Risk
-                    </button>
-                  </div>
+        {clusters.map((cluster) => {
+          const [longitude, latitude] = cluster.geometry.coordinates;
+          const { cluster: isCluster, point_count: pointCount } = cluster.properties;
+          
+          if (isCluster) {
+            return (
+              <Marker
+                key={`cluster-${cluster.id}`}
+                longitude={longitude}
+                latitude={latitude}
+                onClick={() => {
+                  const expansionZoom = Math.min(
+                    supercluster.getClusterExpansionZoom(cluster.id as number),
+                    20
+                  );
+                  setViewState({
+                    ...viewState,
+                    longitude,
+                    latitude,
+                    zoom: expansionZoom
+                  });
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: '#4285f4',
+                    width: `${20 + (pointCount / properties.length) * 20}px`,
+                    height: `${20 + (pointCount / properties.length) * 20}px`,
+                    borderRadius: '50%',
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {pointCount}
                 </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MarkerClusterGroup>
-      </MapContainer>
+              </Marker>
+            );
+          }
+          
+          const property = cluster.properties.property;
+          return (
+            <RiskMarker
+              key={property.id}
+              longitude={longitude}
+              latitude={latitude}
+              riskScore={property.risk_score}
+              onClick={() => setSelectedProperty(property)}
+            />
+          );
+        })}
+        
+        {selectedProperty && (
+          <Popup
+            longitude={selectedProperty.longitude}
+            latitude={selectedProperty.latitude}
+            onClose={() => setSelectedProperty(null)}
+            closeButton={true}
+            closeOnClick={false}
+          >
+            <div className="w-64">
+              <h3 className="font-bold mb-2">{selectedProperty.address}</h3>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Risk Score:</span>
+                  <span className={`font-bold ${
+                    selectedProperty.risk_score > 70 ? 'text-red-600' :
+                    selectedProperty.risk_score > 40 ? 'text-yellow-600' : 'text-green-600'
+                  }`}>
+                    {selectedProperty.risk_score}/100
+                  </span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span>Type:</span>
+                  <span className="capitalize">{selectedProperty.property_type}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="capitalize">{selectedProperty.status}</span>
+                </div>
+                
+                {selectedProperty.estimated_value && (
+                  <div className="flex justify-between">
+                    <span>Value:</span>
+                    <span>${selectedProperty.estimated_value.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+
+              {selectedProperty.risk_factors && Object.keys(selectedProperty.risk_factors).length > 0 && (
+                <div className="mt-3 pt-2 border-t">
+                  <div className="text-sm font-medium mb-1">Risk Factors:</div>
+                  {selectedProperty.risk_factors.flood && (
+                    <div className="text-xs">Flood: {selectedProperty.risk_factors.flood}</div>
+                  )}
+                  {selectedProperty.risk_factors.fire && (
+                    <div className="text-xs">Fire: {selectedProperty.risk_factors.fire}</div>
+                  )}
+                  {selectedProperty.risk_factors.crime && (
+                    <div className="text-xs">Crime: {selectedProperty.risk_factors.crime}</div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => handleEditProperty(selectedProperty)}
+                  className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => assessRisk(selectedProperty.id)}
+                  className="flex-1 bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
+                >
+                  Re-assess Risk
+                </button>
+              </div>
+            </div>
+          </Popup>
+        )}
+      </Map>
 
       {/* Property Modal */}
       <PropertyModal
