@@ -42,4 +42,32 @@ model User {
 
   // Reinsurer example
   reinsurerType  String? // "Treaty" | "Facultative"
+  
+  // Relations
+  properties Property[]
+}
+
+model Property {
+  id              Int      @id @default(autoincrement())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Property details
+  address         String
+  latitude        Float
+  longitude       Float
+  propertyType    String   // residential, commercial, industrial
+  status          String   @default("active")
+  estimatedValue  Float?
+  notes           String?
+  
+  // Risk assessment
+  riskScore       Float    @default(0)
+  riskFactors     Json?    // Flexible JSON for different risk factors
+  
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
