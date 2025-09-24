@@ -16,6 +16,7 @@ export default function HomePage() {
           From underwriting to claims and reinsurance, our solutions help insurers 
           streamline operations, reduce risk, and deliver better outcomes for policyholders.
         </p>
+          <EnhancedMapView />
         <div className="mt-8 flex gap-4">
           <Link
             href="/signup"
@@ -29,10 +30,8 @@ export default function HomePage() {
           >
             Learn More
           </Link>
-          <EnhancedMapView />
         </div>
       </section>
-
       {/* Interactive Map Section */}
       <section className="py-12 px-6 bg-gray-100">
         <div className="max-w-6xl mx-auto">
@@ -46,7 +45,6 @@ export default function HomePage() {
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <EnhancedMapView />
           </div>
         </div>
       </section>

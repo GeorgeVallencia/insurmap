@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback, useEffect } from "react";
-import Map, { Marker } from 'react-map-gl/mapbox';
+import Map, { Marker } from '@vis.gl/react-mapbox';
 import { Plus, MapPin, TrendingUp, AlertTriangle } from "lucide-react";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
