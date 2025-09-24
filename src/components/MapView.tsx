@@ -33,7 +33,7 @@ export default function EnhancedMapView() {
       <Map
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoidmlzdWFsLWluc3RpZ2F0b3IiLCJhIjoiY2psZzJ0Z3Q2MDM3YTNrcGRtbGYwd25haSJ9.4ThjGDhT7B1FhUk_o4U5wQ'}
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoidmFsZW5jaWFnZW9yZ2UiLCJhIjoiY21mdHFzNG96MHl2aDJrc2RxOGZhemxwdyJ9.IGYdggPowFgd5cap8_g8tQ'}
         style={{
           width: '100%',
           height: 'calc(100vh - 100px)',
