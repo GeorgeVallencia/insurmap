@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,67 +9,87 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  UNDERWRITER
-  BROKER
-  INSURER
-  CLAIMS
-  REINSURER
+enum CompanySize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum AnnualClaimsVolume {
+  UNDER_10K
+  BETWEEN_10K_50K
+  BETWEEN_50K_100K
+  BETWEEN_100K_500K
+  OVER_500K
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Company {
+  id           String              @id @default(cuid())
+  name         String
+  size         CompanySize?
+  claimsVolume AnnualClaimsVolume?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  users       User[]
+  invitations Invitation[]
+  auditLogs   AuditLog[]
+
+  @@map("companies")
 }
 
 model User {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole @default(MEMBER)
 
-  // Auth basics
-  email         String   @unique
-  username      String   @unique
-  passwordHash  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Profile
-  fullName      String
-  role          Role
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  // Optional org fields
-  organization  String?
-  industry      String?   // for org signups, optional
+  sentInvitations Invitation[] @relation("SentInvitations") // ← Added opposite side
+  auditLogs       AuditLog[]
 
-  // Example: for underwriters etc.
-  specialtyLine String?   // UNDERWRITER only
-  yearsExp      Int?
-
-  // Claims example
-  avgClaimsPerMonth Int?
-
-  // Reinsurer example
-  reinsurerType  String? // "Treaty" | "Facultative"
-  
-  // Relations
-  properties Property[]
+  @@map("users")
 }
 
-model Property {
-  id              Int      @id @default(autoincrement())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Property details
-  address         String
-  latitude        Float
-  longitude       Float
-  propertyType    String   // residential, commercial, industrial
-  status          String   @default("active")
-  estimatedValue  Float?
-  notes           String?
-  
-  // Risk assessment
-  riskScore       Float    @default(0)
-  riskFactors     Json?    // Flexible JSON for different risk factors
-  
-  // Relations
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      UserRole @default(MEMBER)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  invitedById String?
+  invitedBy   User?   @relation("SentInvitations", fields: [invitedById], references: [id])
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("invitations")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   Json?
+  userId    String?
+  companyId String?
+  createdAt DateTime @default(now())
+
+  user    User?    @relation(fields: [userId], references: [id])
+  company Company? @relation(fields: [companyId], references: [id])
+
+  @@map("audit_logs")
 }

@@ -1,90 +1,122 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <nav className="w-full bg-white fixed top-0 z-50">
-      {/* Change here: instead of max-w-7xl, use a smaller width */}
+    <nav className="w-full bg-white fixed top-0 z-50 border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
         
         {/* Logo */}
-        <div className="flex cursor-pointer items-center space-x-2">
-          <span className="text-xl text-black font-bold tracking-tight">Atomik</span>
-        </div>
+        <Link href="/" className="flex items-center">
+          <span className="text-2xl font-bold tracking-tight text-black">Albitross</span>
+        </Link>
 
-        {/* Desktop Links */}
-        <div className="hidden md:flex space-x-8 text-sm font-medium text-gray-800">
-          <div className="relative group">
-            <a href="#" className="hover:text-black transition">Products</a>
-            <div className="absolute left-0 mt-2 hidden group-hover:block bg-white shadow-lg rounded-md p-4 space-y-2 w-48">
-              <a href="#" className="block text-sm hover:text-black">Risk Mapping</a>
-              <a href="#" className="block text-sm hover:text-black">Fraud Detection</a>
-              <a href="#" className="block text-sm hover:text-black">Pricing Engine</a>
-            </div>
-          </div>
-
-          <div className="relative group">
-            <a href="#" className="hover:text-black transition">Solutions</a>
-            <div className="absolute left-0 mt-2 hidden group-hover:block bg-white shadow-lg rounded-md p-4 space-y-2 w-48">
-              <a href="#" className="block text-sm hover:text-black">For Insurers</a>
-              <a href="#" className="block text-sm hover:text-black">For Brokers</a>
-              <a href="#" className="block text-sm hover:text-black">For Regulators</a>
-            </div>
-          </div>
-
-          <a href="#" className="hover:text-black transition">Developers</a>
-          <a href="#" className="hover:text-black transition">Pricing</a>
-          <a href="#" className="hover:text-black transition">Docs</a>
-        </div>
-
-        {/* Right side */}
-        <div className="flex items-center space-x-4">
-          {/* Desktop actions */}
-          <button className="p-2 text-gray-600 hover:text-black hidden md:inline-block">
-            <Search className="w-5 h-5" />
-          </button>
-          <a href="/login" className="hidden md:inline-block text-sm font-medium text-gray-800 hover:text-black">
-            Log in
-          </a>
-          <a
-            href="/signup"
-            className="hidden md:inline-block px-4 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-900 transition"
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-10">
+          <Link 
+            href="/#features" 
+            className="text-sm font-medium text-gray-700 hover:text-black transition"
           >
-            Sign Up
-          </a>
-
-          {/* Mobile menu button (ONLY on small screens) */}
-          <div className="md:hidden">
-            <button
-              className="p-2 text-gray-700"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
-              {mobileOpen ? <X className="w-6 h-6 cursor-pointer" /> : <Menu className="w-6 h-6 cursor-pointer" />}
-            </button>
-          </div>
+            Features
+          </Link>
+          <Link 
+            href="/pricing"
+            className="text-sm font-medium text-gray-700 hover:text-black transition"
+          >
+            Pricing
+          </Link>
+          <Link 
+            href="/about" 
+            className="text-sm font-medium text-gray-700 hover:text-black transition"
+          >
+            About
+          </Link>
+          <Link 
+            href="/contact" 
+            className="text-sm font-medium text-gray-700 hover:text-black transition"
+          >
+            Contact
+          </Link>
         </div>
+
+        {/* Desktop Actions */}
+        <div className="hidden md:flex items-center space-x-4">
+          <Link 
+            href="/login" 
+            className="text-sm font-medium text-gray-700 hover:text-black transition"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/contact"  // Or use your Calendly link directly if preferred
+            className="px-5 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-900 transition"
+          >
+            Request Demo
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 text-gray-700"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden text-black bg-white border-t border-gray-200 px-6 py-4 space-y-4">
-          <a href="#" className="block hover:text-black">Products</a>
-          <a href="#" className="block hover:text-black">Solutions</a>
-          <a href="#" className="block hover:text-black">Developers</a>
-          <a href="#" className="block hover:text-black">Pricing</a>
-          <a href="#" className="block hover:text-black">Docs</a>
-          <div className="pt-4 border-t border-gray-200">
-            <a href="#" className="block hover:text-black">Sign in</a>
-            <a
-              href="#"
-              className="mt-2 block w-full text-center px-4 py-2 bg-black text-white text-sm font-medium rounded-md hover:bg-gray-900 transition"
+        <div className="md:hidden bg-white border-t border-gray-100 px-6 py-6 space-y-5">
+          <Link 
+            href="/#features" 
+            className="block text-base font-medium text-gray-700 hover:text-black"
+            onClick={() => setMobileOpen(false)}
+          >
+            Features
+          </Link>
+          <Link 
+            href="/pricing"
+            className="block text-base font-medium text-gray-700 hover:text-black"
+            onClick={() => setMobileOpen(false)}
+          >
+            Pricing
+          </Link>
+          <Link 
+            href="/about" 
+            className="block text-base font-medium text-gray-700 hover:text-black"
+            onClick={() => setMobileOpen(false)}
+          >
+            About
+          </Link>
+          <Link 
+            href="/contact" 
+            className="block text-base font-medium text-gray-700 hover:text-black"
+            onClick={() => setMobileOpen(false)}
+          >
+            Contact
+          </Link>
+
+          <div className="pt-4 border-t border-gray-200 space-y-4">
+            <Link 
+              href="/login" 
+              className="block text-base font-medium text-gray-700 hover:text-black"
+              onClick={() => setMobileOpen(false)}
             >
-              Get Started
-            </a>
+              Log in
+            </Link>
+            <Link
+              href="/contact"  // Or your Calendly link
+              className="block w-full text-center px-5 py-3 bg-black text-white text-base font-medium rounded-lg hover:bg-gray-900 transition"
+              onClick={() => setMobileOpen(false)}
+            >
+              Request Demo
+            </Link>
           </div>
         </div>
       )}

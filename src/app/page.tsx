@@ -10,13 +10,12 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="flex flex-col items-center justify-center text-center py-24 px-6 bg-gray-50">
         <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-gray-900">
-          Geospatial Brain of Insurance
+          Save Millions on Fraud.<br />Pay Claims in Minutes.
         </h1>
         <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl">
-          From underwriting to claims and reinsurance, our solutions help insurers 
-          streamline operations, reduce risk, and deliver better outcomes for policyholders.
+          Two powerful AI platforms that help health insurers stop billions in fraudulent payouts while dramatically speeding up legitimate claims - reducing costs and improving trust.
         </p>
-          <EnhancedMapView />
+          {/* <EnhancedMapView /> */}
         <div className="mt-8 flex gap-4">
           <Link
             href="/signup"
@@ -37,56 +36,94 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">
-              Interactive Property Risk Map
+              See Fraud Patterns and Instant Decisions in Action
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Visualize and manage property risks with our interactive mapping platform.
-              Click on the map to add properties and see real-time risk assessments.
+              Our AI analyzes millions of claims in real time to flag suspicious patterns and auto-approve clean claims for immediate payout.
             </p>
           </div>
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="aspect-video bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+              <div className="text-center">
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-32 h-32 mx-auto mb-6" />
+                  <p className="text-xl font-medium text-gray-700">
+                    Live Demo Coming Soon
+                  </p>
+                  <p className="mt-2 text-gray-500">
+                    Real-time fraud detection + instant claim approval dashboard
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <p className="text-4xl font-bold text-black">95%+</p>
+              <p className="mt-2 text-gray-600">Fraud Detection Accuracy</p>
+            </div>
+            <div>
+              <p className="text-4xl font-bold text-black">80%+</p>
+              <p className="mt-2 text-gray-600">Claims Auto-Approved Instantly</p>
+            </div>
+            <div>
+              <p className="text-4xl font-bold text-black">&lt;24h</p>
+              <p className="mt-2 text-gray-600">Average Payout Time for Valid Claims</p>
+            </div>
           </div>
-        </div>
+          </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-6 bg-white">
+      <section id='features' className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-gray-900">
-            Solutions for Every Part of Insurance
+            Two AI Platforms Transforming Health Insurance Claims
           </h2>
           <p className="mt-4 text-lg text-gray-600">
-            Tools designed to optimize underwriting, accelerate claims, 
-            and strengthen reinsurance strategies.
+            Stop fraud at the source and pay legitimate claims faster than ever - all with explainable, auditable AI designed for insurers.
           </p>
         </div>
 
         <div className="mt-16 grid gap-10 md:grid-cols-3 max-w-6xl mx-auto">
           <div className="p-8 border rounded-2xl shadow-sm hover:shadow-md transition">
             <Shield className="w-10 h-10 text-black" />
-            <h3 className="mt-6 text-xl text-black font-semibold">Underwriting Excellence</h3>
+            <h3 className="mt-6 text-xl text-black font-semibold">Fraud Elimination Platform</h3>
             <p className="mt-2 text-gray-600">
-              Leverage smarter data and analytics to assess risk more accurately 
-              and price policies with confidence.
+              Real-time detection of phantom billing, upcoding, unbundling, duplicate claims, and organized fraud rings. Catch fraud before payout with 95%+ accuracy and full audit trails.
             </p>
+            <Link
+              href="/fraud-detection"
+              className="mt-6 inline-block text-black font-medium hover:underline"
+            >
+              Learn more →
+            </Link>
           </div>
 
           <div className="p-8 border rounded-2xl shadow-sm hover:shadow-md transition">
             <FileText className="w-10 h-10 text-black" />
-            <h3 className="mt-6 text-xl text-black font-semibold">Faster Claims</h3>
+            <h3 className="mt-6 text-xl text-black font-semibold">Instant Claims Platform</h3>
             <p className="mt-2 text-gray-600">
-              Automate claim verification, reduce fraud, and pay customers 
-              faster while improving accuracy.
+               Automate adjudication for clean claims and enable same-day or instant payouts. Reduce processing time from weeks to minutes while maintaining compliance and accuracy.
             </p>
+            <Link
+              href="/instant-claims"
+              className="mt-6 inline-block text-black font-medium hover:underline"
+            >
+              Learn more →
+            </Link>
           </div>
 
           <div className="p-8 border rounded-2xl shadow-sm hover:shadow-md transition">
             <BarChart3 className="w-10 h-10 text-black" />
-            <h3 className="mt-6 text-xl text-black font-semibold">Reinsurance Optimization</h3>
+            <h3 className="mt-6 text-xl text-black font-semibold">Better Outcomes For Everyone</h3>
             <p className="mt-2 text-gray-600">
-              Strengthen resilience with advanced modeling and portfolio insights 
-              for reinsurers and brokers.
+              Reduce losses, lower premiums, speed up care delivery, and rebuild trust with providers and policyholders.
             </p>
+            <Link
+              href="/delighted-customers"
+              className="mt-6 inline-block text-black font-medium hover:underline"
+            >
+              Learn more →
+            </Link>
           </div>
         </div>
       </section>
@@ -94,11 +131,10 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-24 px-6 bg-gray-900 text-white text-center">
         <h2 className="text-3xl md:text-4xl font-bold">
-          Transform Your Insurance Operations
+          Ready to Eliminate Fraud and Pay Claims Faster?
         </h2>
         <p className="mt-4 text-lg text-gray-300">
-          Whether you’re an insurer, underwriter, claims manager, or reinsurer, 
-          we help you move faster with less risk.
+          Join leading health insurers transforming claims processing with AI.
         </p>
         <div className="mt-8 flex justify-center">
           <Link
